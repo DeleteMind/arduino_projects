@@ -1,5 +1,5 @@
 
-int delayTime = 300;
+int delayTime = 300; // Delay time in milliseconds
 
 void setup() {
   // put your setup code here, to run once:
