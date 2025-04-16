@@ -1,50 +1,52 @@
-
-
 #include <Servo.h>
-#include"RTClib.h"
+#include "RTClib.h"
 
 Servo meuServo;
 RTC_DS3231 rtc;
 
-bool jaExecutouHoje = false; // verifica se já foi executado e que  a execução do servo só ocorra uma vez
-int ultimoDiaExecutado = -1; //Armazena o ultimo dia em que o servo foi executado
-
+bool jaExecutouHoje = false;
+int ultimoDiaExecutado = -1;
 
 void setup() {
-  Serial.begin(9600); //inicia a comunicação serial
+  Serial.begin(9600);
   meuServo.attach(9);
- 
-if (!rtc.begin()) { // verifica se o módulo rtc foi encontrado
-  Serial.println("Couldn't find rtc!");
-  Serial.flush();
-  while(1) delay(10); // se não for encontrado, entra num loop infinito
+  meuServo.write(0);
+
+   if (!rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    Serial.flush();
+    while (1) delay(10);
+  }
+
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power, let's set the time!");
+    // Adjust the time for your timezone (e.g. UTC+1)
+    rtc.adjust(DateTime(2025, 4, 6, 9, 59, 50)); //set hour
+  }
+  
 }
 
-if(rtc.lostPower()) { // se perder energia e desligar
-  Serial.print("RTC lost power, let's set the time");
-  rtc.adjust(DateTime(2025, 4, 5, 6, 0, 58, 0));
- }
-}
+void loop() {
+  DateTime now = rtc.now();
 
-void ServoClock() {
- DateTime agora = rtc.now(); //DateTime obtém as horas atuais do rtc e guarda na variável agora
 
-  int horaAtual = agora.hour();
-  int minutoAtual = agora.minute();
-  int diaAtual = agora.day();  // para saber se já mudou o dia
+  // Data e hora atual (simulado para teste)
+  int horaAtual = now.hour();
+  int minutoAtual = now.minute();
+  int diaAtual = now.day();  // para saber se já mudou o dia
 
   int horaAlvo = 10;
   int minutoAlvo = 0;
 
   // Se for a hora e minuto certos, e ainda não executou hoje
   if (horaAtual == horaAlvo && minutoAtual == minutoAlvo && !jaExecutouHoje) {
-    meuServo.write(90);
-    delay(1000);
-    meuServo.write(0);
-    delay(1000);
+    meuServo.write(90);     // Mover para 90°
+    delay(500);            // Esperar 1 segundo
+    meuServo.write(0);      // Mover de volta para 0°
+    delay(500);            // Esperar 1 segundo para o servo descansar
 
-    meuServo.detach(); // Desliga o RTC ao pin 9
-
+    meuServo.detach();
+    
     jaExecutouHoje = true;
     ultimoDiaExecutado = diaAtual;
   }
@@ -55,10 +57,12 @@ void ServoClock() {
     meuServo.attach(9);
   }
 
-  delay(60000);
+   Serial.print(now.hour(), DEC);
+  Serial.print(':');
+  Serial.print(now.minute(), DEC);
+  Serial.print(':');
+  Serial.print(now.second(), DEC);
+  Serial.println();
 
-}
-
-void loop() {
-  ServoClock();
+  delay(1000); // Espera 1 segundo antes de verificar novamente
 }
