@@ -12,6 +12,8 @@ void setup() {
     Serial.begin(9600);
     meuServo.attach(9);
     meuServo.write(0);
+    pinMode(4, OUTPUT);
+    pinMode(5, OUTPUT);
 
     if (!rtc.begin()) {
         Serial.println("Couldn't find RTC");
@@ -28,6 +30,10 @@ void moverServo() {
     if (!meuServo.attached()) {
         meuServo.attach(9);
     }
+    meuServo.write(90);
+    delay(500);
+    meuServo.write(0);
+    delay(500);
     meuServo.write(90);
     delay(500);
     meuServo.write(0);
@@ -50,12 +56,15 @@ void loop() {
     if (diaAtual != ultimoDiaExecutado) {
         primeiraExecucao = false;
         segundaExecucao = false;
+        digitalWrite(4, LOW);
+        digitalWrite(4, LOW);
         ultimoDiaExecutado = diaAtual;
     }
 
     // Primeiro horário (10:00)
     if (horario1 && !primeiraExecucao) {
         moverServo();
+        digitalWrite(4, HIGH);
         primeiraExecucao = true;
         ultimoDiaExecutado = diaAtual;
         Serial.println("Servo acionado às 10:00");
@@ -64,6 +73,7 @@ void loop() {
     // Segundo horário (14:00)
     if (horario2 && !segundaExecucao) {
         moverServo();
+        digitalWrite(5, HIGH);
         segundaExecucao = true;
         ultimoDiaExecutado = diaAtual;
         Serial.println("Servo acionado às 14:00");
